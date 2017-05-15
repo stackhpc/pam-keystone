@@ -10,7 +10,7 @@ It does not create an NSS module, so its for auth only.
 To use, copy keystone-auth.py to /lib/security, chmod 555 it.
 Then add a line like 
 
-    auth sufficient pam_python.so owa-auth.py
+    auth sufficient pam_python.so keystone-auth.py
 
 usually right before:
 
