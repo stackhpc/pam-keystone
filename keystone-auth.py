@@ -22,6 +22,7 @@ def pam_sm_authenticate(pamh, flags, argv):
         try:
             cloud_cfg = yaml.safe_load(fp)
             keystone_api = cloud_cfg['clouds'][argv[1]]['auth']['auth_url']
+            keystone_domain = cloud_cfg['clouds'][argv[1]]['auth']['domain_name']
         except:
             syslog.syslog(syslog.LOG_AUTH | syslog.LOG_INFO,
                 "PAM-Keystone: Unable to read Keystone endpoint from %s" %
@@ -47,13 +48,19 @@ def pam_sm_authenticate(pamh, flags, argv):
 
             val = {
                 "auth": {
-                    "passwordCredentials": {
-                        "password": pamh.authtok,
-                        "username": pamh.user
+                    "identity": {
+                        "methods": [ "password" ],
+                        "password": {
+                            "user": {
+                                "name": pamh.user,
+                                "domain": { "name": keystone_domain },
+                                "password": pamh.authtok
+                            }
+                        } 
                     }
                 }
             }
-            keystone_url = keystone_api + '/v2.0/tokens'
+            keystone_url = keystone_api + '/v3/auth/tokens'
             req = urllib2.Request(keystone_url)
             req.add_header('Content-Type', 'application/json')
             try:
@@ -63,11 +70,15 @@ def pam_sm_authenticate(pamh, flags, argv):
 
                 response = urllib2.urlopen(req, json.dumps(val))
 
-                if (response.getcode() == 200):
+                if (response.getcode() == 201):
                     mc.set("%s-%s" % (mu.hexdigest(),mp.hexdigest()),"true", 900)
                     syslog.syslog(syslog.LOG_AUTH | syslog.LOG_INFO,
                         "PAM-Keystone: User %s authenticated" % pamh.user)
                     return pamh.PAM_SUCCESS
+		else:
+                    syslog.syslog(syslog.LOG_AUTH | syslog.LOG_INFO,
+                        "PAM-Keystone: User %s return code was %s" % (pamh.user, response.getcode()))
+
             except Exception as E:
                 # Don't want this error, its the 401
                 syslog.syslog(syslog.LOG_AUTH | syslog.LOG_DEBUG,
