@@ -1,17 +1,17 @@
 Name:		pam-keystone
-Version:	0.0.3
+Version:	0.1.0
 Release:	1%{?dist}
 Summary:	PAM module for authenticating against OpenStack Keystone
 
 Group:		System Environment/Libraries
 License:	Public Domain
 URL:		https://github.com/stackhpc/pam-keystone
-Source0:	pam-keystone-0.0.3.tar.gz
+Source0:	pam-keystone-0.1.0.tar.gz
 
-Requires:	python
-Requires:	pam-python
-Requires:	PyYAML
-Requires:       python-memcached
+Requires:	python3
+Requires:	python3-pam
+Requires:	python3-pyyaml
+Requires:	python3-memcached
 
 %description
 This module allows authenticating against keystone as a
@@ -35,6 +35,9 @@ install -D keystone-auth.py $RPM_BUILD_ROOT/usr/lib64/security/keystone-auth.py
 /usr/lib64/security/keystone-auth.pyo
 
 %changelog
+* Fri Jul 24 2020 Bharat Kunwar <bharat@stackhpc.com>
+- Switch to python 3
+
 * Sun Feb 11 2018 Stig Telfer <stig@stackhpc.com>
 - Updated for Keystone v3 domain support
 
